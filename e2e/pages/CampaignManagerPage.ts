@@ -52,6 +52,7 @@ export class CampaignManagerPage {
   // the app may redirect or show unexpected behavior.
   // ----------------------------------------------------------
   readonly PATH = '/en-us/dashboard/campaign-manager';
+  // https://app-testing.trypair.ai/en-us/dashboard/campaign-manager
 
 
   // ----------------------------------------------------------
@@ -190,7 +191,7 @@ export class CampaignManagerPage {
    */
   async waitForPageToLoad(): Promise<void> {
     // Confirm URL
-    await this.page.waitForURL(`**/${this.PATH}**`, { timeout: 15_000 });
+    await this.page.waitForURL(`**${this.PATH}**`, { timeout: 15_000 });
 
     // Confirm page heading is visible
     // TODO: update once pageHeading selector is confirmed

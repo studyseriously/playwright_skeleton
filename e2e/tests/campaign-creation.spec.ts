@@ -78,8 +78,9 @@ test.describe('Campaign creation', () => {
     // wired up Step1CampaignSetupPage yet — keeping this smoke
     // test self-contained and simple.
     // ----------------------------------------------------------
-    await expect(page.locator('#name')).toBeVisible();
-
+    // await expect(page.locator('#name')).toBeVisible();
+    await expect(page.locator('#description')).toBeVisible();
+    
   });
 
 });

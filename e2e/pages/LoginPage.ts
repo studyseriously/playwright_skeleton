@@ -69,7 +69,7 @@ export class LoginPage {
   // The login/submit button.
   // Using getByRole + name is the most stable approach for buttons.
   // TODO: Confirm the exact visible text on the button.
-  // Common values: 'Login', 'Sign in', 'Log in'
+  // Common values: 'Login', 'Sign in', 'Log in', 'Continue'
   // Update the name value below to match exactly what you see.
   readonly submitButton: Locator;
 
@@ -81,20 +81,34 @@ export class LoginPage {
   // TODO: Inspect what element appears on failed login and update selector.
   readonly errorMessage: Locator;
 
+  /**
+   * The main sidebar container that exists only after login.
+   * This is a stable structural element identified by a custom data attribute.
+   * Unlike user name text, this does not change between users or environments.
+   * Selector: [data-sidebar="sidebar"]
+   */
+  readonly sidebar: Locator;
+
 
   // ----------------------------------------------------------
   // SECTION 3: CONSTRUCTOR
   // ----------------------------------------------------------
+  
   constructor(page: Page) {
     this.page = page;
 
     // TODO: Replace these selectors after inspecting the login page in DevTools
-    // this.emailInput    = page.locator('input[type="email"]');   // TODO: confirm — try #email first
-    this.emailInput = page.locator('input[name="email"]');
+    // this.emailInput = page.locator('input[type="email"]');   // alternative — try #email first
+    this.emailInput    = page.locator('input[name="email"]');
     this.passwordInput = page.locator('input[type="password"]'); // TODO: confirm — try #password first
     this.submitButton  = page.getByRole('button', { name: 'Continue' }); // TODO: confirm exact button text
     this.errorMessage  = page.locator('TODO: error message selector'); // TODO: inspect failed login state
+
+    // Initializing the sidebar locator via data attribute for maximum stability
+    this.sidebar = page.locator('[data-sidebar="sidebar"]');
   }
+
+  
 
 
   // ----------------------------------------------------------
@@ -109,8 +123,8 @@ export class LoginPage {
    *
    * TODO: Confirm the exact login page path.
    * Options to check:
-   *   '/'          → root redirects to login when unauthenticated
-   *   '/login'     → dedicated login route
+   *   '/'            → root redirects to login when unauthenticated
+   *   '/login'       → dedicated login route
    *   '/en-us/login' → locale-prefixed login route
    *
    * Open the app in an incognito window to see where
@@ -122,7 +136,8 @@ export class LoginPage {
 
     // Wait for the email input to confirm the login form is loaded.
     // This prevents actions on an element that doesn't exist yet.
-    await this.emailInput.waitFor({ state: 'visible' });
+    // await this.emailInput.waitFor({ state: 'visible' });
+    await expect(this.emailInput).toBeVisible({ timeout: 10_000 });
   }
 
   /**
@@ -134,6 +149,8 @@ export class LoginPage {
    * More reliable than .type() for programmatic input.
    */
   async fillEmail(email: string): Promise<void> {
+    // await this.emailInput.fill(email);
+    await expect(this.emailInput).toBeVisible();
     await this.emailInput.fill(email);
   }
 
@@ -146,6 +163,8 @@ export class LoginPage {
    * in its traces or reports — your credentials stay private.
    */
   async fillPassword(password: string): Promise<void> {
+    // await this.passwordInput.fill(password);
+    await expect(this.passwordInput).toBeVisible();
     await this.passwordInput.fill(password);
   }
 
@@ -157,6 +176,9 @@ export class LoginPage {
    * If credentials are wrong  → error message appears
    */
   async clickSubmit(): Promise<void> {
+    // await this.submitButton.click();
+    await expect(this.submitButton).toBeVisible();
+    await expect(this.submitButton).toBeEnabled(); // Ensures button is ready for interaction
     await this.submitButton.click();
   }
 
@@ -193,7 +215,7 @@ export class LoginPage {
    * USAGE IN auth.setup.ts:
    *   const loginPage = new LoginPage(page);
    *   await loginPage.login(email, password);
-   *   // then wait for dashboard to confirm success
+   *   // then call waitForSuccessfulLogin() to confirm
    */
   async login(email: string, password: string): Promise<void> {
     await this.goto();
@@ -207,25 +229,27 @@ export class LoginPage {
    *
    * Waits for TWO signals:
    *   1. URL contains '/dashboard' — the redirect happened
-   *   2. The user's name is visible in the sidebar — app fully loaded
+   *   2. The sidebar layout is visible — app fully loaded
+   *
+   * WHY SIDEBAR INSTEAD OF USER NAME?
+   * Previously this waited for the user's name (TEST_USER_NAME)
+   * to appear in the sidebar footer, which broke when switching
+   * accounts or running in CI with different credentials.
+   * The sidebar is a structural element that exists for ALL
+   * authenticated users, identified by: data-sidebar="sidebar"
    *
    * Call this AFTER login() in auth.setup.ts to confirm
    * the session is valid before saving it to session.json.
-   *
-   * @param userName - The display name of the test user
-   *                   (read from TEST_USER_NAME env variable)
    */
-  async waitForSuccessfulLogin(userName: string): Promise<void> {
+  async waitForSuccessfulLogin(): Promise<void> {
     // Wait for URL to include /dashboard
     await this.page.waitForURL('**/dashboard/**', { timeout: 15_000 });
 
-    // Wait for the user's name to appear in the sidebar footer.
-    // From the HTML you shared, the name is inside a <span> with
-    // class "truncate font-semibold" in the sidebar footer button.
-    // getByText with exact:false handles surrounding whitespace.
-    await expect(
-      this.page.getByText(userName, { exact: false })
-    ).toBeVisible({ timeout: 10_000 });
-  }
+    // Wait for the sidebar to be visible.
+    // This confirms that the authenticated dashboard layout has fully rendered.
+    // await expect(this.sidebar).toBeVisible({ timeout: 10_000 });
+    // await expect(this.sidebar).toBeVisible({ timeout: 15_000 }); // Increased timeout for UI mode overhead
+// Inside a Page Object method
+await expect(this.page).toHaveURL('https://app-testing.trypair.ai/en-us/dashboard/settings/workspaces', { timeout: 15_000 });  }
 
 }

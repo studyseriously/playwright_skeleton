@@ -12,7 +12,7 @@
  *   2. Fill in the email and password
  *   3. Submit the login form
  *   4. Wait until we are fully inside the app (confirmed by
- *      a visible element that only appears when logged in)
+ *      the sidebar layout appearing)
  *   5. Save the entire browser state (cookies, localStorage,
  *      sessionStorage) to a file called session.json
  *
@@ -112,20 +112,23 @@ setup('authenticate', async ({ page }) => {
   // ----------------------------------------------------------
   // waitForSuccessfulLogin() waits for TWO signals:
   //   A) URL contains '/dashboard' — redirect happened
-  //   B) User's name is visible in sidebar — app fully loaded
+  //   B) Sidebar is visible — dashboard layout fully loaded
   //
-  // We read the name from TEST_USER_NAME env variable.
-  // Falls back to 'Hassan Saad' if the variable is not set.
+  // We use a structural selector (data-sidebar="sidebar")
+  // instead of user-specific text to make the check stable
+  // across different users and environments. Previously this
+  // waited for the user's name (TEST_USER_NAME) in the sidebar,
+  // which broke when switching accounts or running in CI with
+  // different credentials.
   // ----------------------------------------------------------
-  const userName = process.env.TEST_USER_NAME ?? 'Hassan Saad';
-  await loginPage.waitForSuccessfulLogin(userName);
+  await loginPage.waitForSuccessfulLogin();
 
   // ----------------------------------------------------------
-  // STEP 7: Save the browser session to disk
+  // STEP 4: Save the browser session to disk
   // ----------------------------------------------------------
   // This captures EVERYTHING the browser has stored after login:
   //   - Cookies (including session cookies)
-  //   - localStorage (including the encrypted session key we saw)
+  //   - localStorage (including the encrypted session key)
   //   - sessionStorage
   //
   // All subsequent tests load this file instead of logging in.

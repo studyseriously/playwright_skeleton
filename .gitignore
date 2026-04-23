@@ -1,0 +1,121 @@
+# ==============================================================
+# .gitignore — E2E Test Repository
+# ==============================================================
+#
+# This file tells git which files and folders to NEVER track.
+# Anything listed here will not appear in git status, will not
+# be staged, and will never be committed or pushed.
+#
+# WHY THIS MATTERS:
+# -----------------
+# Some files must never reach the repository:
+#   - .env contains real credentials → security risk if committed
+#   - session.json contains a live auth token → security risk
+#   - test-results/ and playwright-report/ are large generated
+#     folders that change every run → noise in git history
+#   - node_modules/ is huge and fully reproducible via npm install
+# ==============================================================
+
+
+# --------------------------------------------------------------
+# CREDENTIALS & SECRETS — NEVER COMMIT THESE
+# --------------------------------------------------------------
+
+# Your real environment variables file with actual credentials.
+# .env.example (the template with fake values) IS tracked by git.
+.env
+.env.local
+.env.*.local
+
+
+# --------------------------------------------------------------
+# PLAYWRIGHT AUTH SESSION — NEVER COMMIT THIS
+# --------------------------------------------------------------
+# This folder contains session.json — a live browser session
+# with a real auth token. Committing it would expose the
+# test account to anyone with repo access.
+# The folder is created automatically by auth.setup.ts.
+e2e/.auth/
+
+# Playwright
+node_modules/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+/playwright/.auth/
+
+# --------------------------------------------------------------
+# PLAYWRIGHT TEST OUTPUT — GENERATED FILES
+# --------------------------------------------------------------
+# These are regenerated on every test run.
+# They are large, change constantly, and have no value in git.
+# In CI, they are uploaded as GitHub Actions artifacts instead.
+
+# Screenshots, videos, and traces from failed tests
+test-results/
+
+# The HTML test report (open with: npx playwright show-report)
+playwright-report/
+
+
+# --------------------------------------------------------------
+# NODE MODULES
+# --------------------------------------------------------------
+# Never commit node_modules — it is fully reproducible by
+# running: npm install
+# It can contain thousands of files and hundreds of MB.
+node_modules/
+
+
+# --------------------------------------------------------------
+# OPERATING SYSTEM FILES
+# --------------------------------------------------------------
+
+# macOS metadata files created automatically by Finder
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V8
+.Trashes
+
+# Windows thumbnail cache
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+
+# --------------------------------------------------------------
+# EDITOR & IDE FILES
+# --------------------------------------------------------------
+
+# VS Code workspace settings (personal preferences, not project config)
+# Note: .vscode/extensions.json and .vscode/launch.json are useful
+# to share with the team — only ignore personal settings files.
+.vscode/settings.json
+
+# JetBrains IDEs (WebStorm, IntelliJ)
+.idea/
+
+# Vim swap files
+*.swp
+*.swo
+
+
+# --------------------------------------------------------------
+# TYPESCRIPT BUILD OUTPUT
+# --------------------------------------------------------------
+# If you ever compile TypeScript to JavaScript, the output
+# goes here. Not needed in the repo — Playwright runs TypeScript
+# directly via ts-node.
+dist/
+build/
+
+
+# --------------------------------------------------------------
+# LOGS
+# --------------------------------------------------------------
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
